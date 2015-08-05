@@ -268,16 +268,8 @@ double w(double const z0, double const z1)
 {
     return(
             exp(
-                -.5 * (z1 * (
-                            z1 * omega[0][0] / (-omega[0][0]*omega[0][0] + omega[0][0] * omega[1][1])
-                            - z0 * omega[1][0] / (-omega[1][0]*omega[1][0] + omega[0][0] * omega[1][1])
-                            )
-
-                        + z0 *(
-                            - z1 * omega[1][0] / (-omega[0][0]*omega[0][0] + omega[0][0] * omega[1][1])
-                            - z0 * omega[1][1] / (-omega[1][0]*omega[1][0] + omega[0][0] * omega[1][1])
-                            )
-                    )
+                    (z1*z1 * omega[0][0] - 2 * z0 * z1 * omega[1][0] + z0 * z0 * omega[1][1]) /
+                    (-omega[1][0] * omega[1][0] + omega[0][0] * omega[1][1])
                )
           );
 }
@@ -461,7 +453,7 @@ int main(int argc, char ** argv)
 
 		Reproduce_Survive();
 
-        if (do_stats)
+        if (do_stats || generation > NumGen - 2000)
 		{
 			WriteData();
 		}
