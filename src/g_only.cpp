@@ -244,7 +244,7 @@ void Init()
     r = gsl_rng_alloc(T);
 
 
-	// initialize the whole populatin
+	// initialize the whole population
 	for (size_t i = 0; i < Npop/2; ++i)
 	{
         // loop through the different characters
@@ -345,7 +345,7 @@ void Reproduce_Survive()
             // calculate survival
             w = v(Kid.phen[0], Kid.phen[1]);
 
-            cout << i << " " << father << " " << Kid.phen[0] << " " << Kid.phen[1] << " " << w << endl;
+            //cout << i << " " << father << " " << Kid.phen[0] << " " << Kid.phen[1] << " " << w << endl;
 
 
             assert(w >= 0 && w <= 1.0);
@@ -355,6 +355,20 @@ void Reproduce_Survive()
             // individual survives; add to stack
             if (gsl_rng_uniform(r) < w)
             {
+                if (generation == 11500)
+                {
+                    double sumz1 = 0;
+                    double sumz2 = 0;
+                    for (size_t i = 0; i < n_loci_g; ++i)
+                    {
+                        sumz1 += Kid.z1[i][0] + Kid.z1[i][1];
+                        sumz2 += Kid.z2[i][0] + Kid.z2[i][1];
+                        //cout << NKids << ";" << Kid.z1[i][0] + Kid.z1[i][1] << ";" << Kid.z1[i][0] + Kid.z1[i][1] << endl;
+                    }
+
+                    cout << NKids << ";" << sumz1 << ";" << sumz2 << endl;
+                }
+
                 NewPop[NKids++] = Kid;
                 assert(NKids < Npop * 2 * 10);
             }
