@@ -47,8 +47,12 @@ double a2 = 0;
 // mutational correlation
 double rmu = 0;
 
-// mutation rate
+// mutation rate conventional gene loci
 double mu = 0;
+
+// mutation rate maternal effects loci
+double mu_m = 0;
+double sdmu_m = 0;
 
 // strengths of selection
 double omega[2][2] = {{0,0},{0,0}};
@@ -91,8 +95,9 @@ struct Individual
     // 0<i<=n_loci_g: the number of unlinked gene loci 
     // j: the number of independent traits (2 in this case)
     // k: ploidy (in this case diploid)
-    double z1[n_loci_g][2]; 
-    double z2[n_loci_g][2]; 
+    double g[2][n_loci_g][2]; 
+
+    double m[2][2][2];
 
     double phen[2];
     double gen[2];
@@ -137,11 +142,13 @@ void initArguments(int argc, char *argv[])
     a2 = atof(argv[2]);
     rmu = atof(argv[3]);
     mu = atof(argv[4]);
-    omega[0][0] = atof(argv[5]);
-    omega[0][1] = atof(argv[6]);
-    omega[1][0] = atof(argv[7]);
-    omega[1][1] = atof(argv[8]);
-    B = atof(argv[9]);
+    mu_m = atof(argv[5]);
+    sdmu_m = atof(argv[6]);
+    omega[0][0] = atof(argv[7]);
+    omega[0][1] = atof(argv[8]);
+    omega[1][0] = atof(argv[9]);
+    omega[1][1] = atof(argv[10]);
+    B = atof(argv[11]);
 
     assert(B < 10);
 }
@@ -175,9 +182,9 @@ void MutateG(Individual &ind)
             //cout << a << ";" << b << endl;
 
             // add the new allelic effect to trait one
-            ind.z1[locus_i][0] += a;
+            ind.g[0][locus_i][0] += a;
             // add the new allelic effect to trait two
-            ind.z2[locus_i][0] += b;
+            ind.g[1][locus_i][0] += b;
 
             ind.gen[0] += a;
             ind.gen[1] += b;
@@ -192,14 +199,25 @@ void MutateG(Individual &ind)
             gsl_ran_bivariate_gaussian(r, a1, a2, rmu, &a, &b);
 
             // add the new allelic effect to trait one
-            ind.z1[locus_i][1] += a;
+            ind.g[0][locus_i][1] += a;
             // add the new allelic effect to trait two
-            ind.z2[locus_i][1] += b;
+            ind.g[1][locus_i][1] += b;
 
             ind.gen[0] += a;
             ind.gen[1] += b;
         }
     }
+}
+
+// mutate the maternal effects matrix
+double MutateM(double m)
+{
+    if (gsl_rng_uniform(r) < mu_m)
+    {
+        m += gsl_ran_gaussian(r, sdmu_m);
+    }
+
+    return(m);
 }
 
 // write the parameters (typically at the end of the output file)
@@ -213,6 +231,8 @@ void WriteParameters()
         << "a2;" << a2 << endl
         << "rmu;" << rmu << endl
         << "mu;" << mu << endl
+        << "mu_m;" << mu_m << endl
+        << "sdmu_m;" << sdmu_m << endl
         << "omega_11;" << omega[0][0] << endl
         << "omega_12;" << omega[0][1] << endl
         << "omega_21;" << omega[1][0] << endl
@@ -249,25 +269,22 @@ void Init()
 	for (size_t i = 0; i < Npop/2; ++i)
 	{
         // loop through the different characters
-        for (size_t l = 0; l < 2; ++l)
+        for (size_t trait_i = 0; trait_i < 2; ++trait_i)
         {
-            Males[i].phen[l] = 0;
-            Males[i].gen[l] = 0;
-            Females[i].phen[l] = 0;
-            Females[i].gen[l] = 0;
-
-        }
-                    
-        // loop through each of the loci
-        for (size_t j = 0; j < n_loci_g; ++j)
-        {
-            // loop through each of the alleles
-            for (size_t k = 0; k < 2; ++k)
+            Males[i].phen[trait_i] = 0;
+            Males[i].gen[trait_i] = 0;
+            Females[i].phen[trait_i] = 0;
+            Females[i].gen[trait_i] = 0;
+                        
+            // loop through each of the loci
+            for (size_t j = 0; j < n_loci_g; ++j)
             {
-                Males[i].z1[j][k] = 0;
-                Males[i].z2[j][k] = 0;
-                Females[i].z1[j][k] = 0;
-                Females[i].z2[j][k] = 0;
+                // loop through each of the alleles
+                for (size_t k = 0; k < 2; ++k)
+                {
+                    Males[i].g[trait_i][j][k] = 0;
+                    Females[i].g[trait_i][j][k] = 0;
+                }
             }
         }
 	}
@@ -279,75 +296,70 @@ void Init()
 // create an offspring
 void Create_Kid(size_t const mother, size_t const father, Individual &kid)
 {
+    // copy mother and father, preventing many array lookups
     Individual Mother = Females[mother];
     Individual Father = Males[father];
 
+    // reset the total genetic values corresponding to each trait to 0
     kid.gen[0] = 0;
     kid.gen[1] = 0;
 
+    // inherit 'normal' gene loci
     // loop through all the loci
     for (size_t i = 0; i < n_loci_g; ++i)
     {
-        // // randomly choose one of both maternal alleles to inherit
-        // kid.z1[i][0] = Mother.z1[i][gsl_rng_uniform_int(r,2)];
-        // kid.gen[0] += kid.z1[i][0];
-
-        // // randomly choose one of both paternal alleles to inherit
-        // kid.z1[i][1] = Father.z1[i][gsl_rng_uniform_int(r,2)];
-        // kid.gen[0] += kid.z1[i][1];
-        // 
-        // // randomly choose one of both maternal alleles to inherit
-        // kid.z2[i][0] = Mother.z2[i][gsl_rng_uniform_int(r,2)];
-        // kid.gen[1] += kid.z2[i][0];
-
-        // // randomly choose one of both paternal alleles to inherit
-        // kid.z2[i][1] = Father.z2[i][gsl_rng_uniform_int(r,2)];
-        // kid.gen[1] += kid.z2[i][1];
-        //
         if (gsl_rng_uniform(r) < 0.5)
         {
-            kid.z1[i][0] = Mother.z1[i][0];
-            kid.gen[0] += kid.z1[i][0];
+            kid.g[0][i][0] = Mother.g[0][i][0];
+            kid.gen[0] += kid.g[0][i][0];
             
-            kid.z2[i][0] = Mother.z2[i][0];
-            kid.gen[1] += kid.z2[i][0];
+            kid.g[1][i][0] = Mother.g[1][i][0];
+            kid.gen[1] += kid.g[1][i][0];
         }
         else
         {
-            kid.z1[i][0] = Mother.z1[i][1];
-            kid.gen[0] += kid.z1[i][0];
+            kid.g[0][i][0] = Mother.g[0][i][1];
+            kid.gen[0] += kid.g[0][i][0];
             
-            kid.z2[i][0] = Mother.z2[i][1];
-            kid.gen[1] += kid.z2[i][0];
+            kid.g[1][i][0] = Mother.g[1][i][1];
+            kid.gen[1] += kid.g[1][i][0];
         }
         
         
         if (gsl_rng_uniform(r) < 0.5)
         {
-            kid.z1[i][1] = Father.z1[i][0];
-            kid.gen[0] += kid.z1[i][1];
+            kid.g[0][i][1] = Father.g[0][i][0];
+            kid.gen[0] += kid.g[0][i][1];
             
-            kid.z2[i][1] = Father.z2[i][0];
-            kid.gen[1] += kid.z2[i][1];
+            kid.g[1][i][1] = Father.g[1][i][0];
+            kid.gen[1] += kid.g[1][i][1];
         }
         else
         {
-            kid.z1[i][1] = Father.z1[i][1];
-            kid.gen[0] += kid.z1[i][1];
+            kid.g[0][i][1] = Father.g[0][i][1];
+            kid.gen[0] += kid.g[0][i][1];
             
-            kid.z2[i][1] = Father.z2[i][1];
-            kid.gen[1] += kid.z2[i][1];
+            kid.g[1][i][1] = Father.g[1][i][1];
+            kid.gen[1] += kid.g[1][i][1];
         }
     }
 
-    
+    // inherit maternal effect loci
+    for (size_t trait_i = 0; trait_i < 2; ++trait_i)
+    {
+        for (size_t trait_j = 0; trait_j < 2; ++trait_j)
+        {
+            kid.m[trait_i][trait_j][0] = MutateM(Mother.m[trait_i][trait_j][gsl_rng_uniform_int(r,2)]);
+            kid.m[trait_i][trait_j][1] = MutateM(Father.m[trait_i][trait_j][gsl_rng_uniform_int(r,2)]);
+        }
+    }
+
     MutateG(kid);
    
     // add environmental variance to each trait by adding a random number
     // drawn from a normal distribution to each phenotype
-    kid.phen[0] = kid.gen[0] + gsl_ran_gaussian(r,1.0);
-    kid.phen[1] = kid.gen[1] + gsl_ran_gaussian(r,1.0);
-
+    kid.phen[0] = kid.gen[0] + gsl_ran_gaussian(r,1.0) + (kid.m[0][0][0] + kid.m[0][0][1]) * Mother.phen[0] + (kid.m[0][1][0] + kid.m[0][1][1]) * Mother.phen[1];
+    kid.phen[1] = kid.gen[1] + gsl_ran_gaussian(r,1.0) + (kid.m[1][0][0] + kid.m[1][0][1]) * Mother.phen[0] + (kid.m[1][1][0] + kid.m[1][1][1]) * Mother.phen[1];
 }
 
 
@@ -391,20 +403,6 @@ void Reproduce_Survive()
             // individual survives; add to stack
             if (gsl_rng_uniform(r) < w)
             {
-                if (generation == 11500)
-                {
-                    double sumz1 = 0;
-                    double sumz2 = 0;
-                    for (size_t i = 0; i < n_loci_g; ++i)
-                    {
-                        sumz1 += Kid.z1[i][0] + Kid.z1[i][1];
-                        sumz2 += Kid.z2[i][0] + Kid.z2[i][1];
-                        //cout << NKids << ";" << Kid.z1[i][0] + Kid.z1[i][1] << ";" << Kid.z1[i][0] + Kid.z1[i][1] << endl;
-                    }
-
-                    //cout << NKids << ";" << sumz1 << ";" << sumz2 << endl;
-                }
-
                 NewPop[NKids++] = Kid;
                 assert(NKids < Npop * 2 * 10);
             }
@@ -468,11 +466,12 @@ void WriteData()
     double meangen[2] = {0,0};
     double meanphen[2] = {0,0};
 
+    double meanm[2][2] = {{0,0},{0,0}};
+    double ssm[2][2] = {{0,0},{0,0}};
+
     // genotypic and phenotypic sums of squares 
     double ssgen[2][2] = {{0,0},{0,0}};
     double ssphen[2][2] = {{0,0},{0,0}};
-
-    double covar = 0;
 
     // get stats from the population
     for (size_t i = 0; i < Nf; ++i)
@@ -487,20 +486,13 @@ void WriteData()
             {
                 ssgen[j1][j2] += Females[i].gen[j1] * Females[i].gen[j2];
                 ssphen[j1][j2] += Females[i].phen[j1] * Females[i].phen[j2];
+
+                meanm[j1][j2] += Females[i].m[j1][j2][0] + Females[i].m[j1][j2][1];
+                ssm[j1][j2] += (Females[i].m[j1][j2][0] + Females[i].m[j1][j2][1]) * 
+                    (Females[i].m[j1][j2][0] + Females[i].m[j1][j2][1]);
             }
         }
     }
-
-//    double mean0 = meangen[0] / Nf;
-//    double mean1 = meangen[1] / Nf;
-//
-//    for (size_t i = 0; i < Nf; ++i)
-//    {
-//        covar += (Females[i].gen[0] - mean0) * (Females[i].gen[1] - mean1);
-//
-//    }
-
-    //cout << mean0 << ";" << mean1 << ";" << (covar / Nf) << endl;
 
 
     for (size_t i = 0; i < Nm; ++i)
@@ -515,49 +507,14 @@ void WriteData()
             {
                 ssgen[j1][j2] += Males[i].gen[j1] * Males[i].gen[j2];
                 ssphen[j1][j2] += Males[i].phen[j1] * Males[i].phen[j2];
+
+                meanm[j1][j2] += Males[i].m[j1][j2][0] + Males[i].m[j1][j2][1];
+                ssm[j1][j2] += (Males[i].m[j1][j2][0] + Males[i].m[j1][j2][1]) * 
+                    (Males[i].m[j1][j2][0] + Males[i].m[j1][j2][1]);
             }
         }
     }
 
-//    // get stats from the population
-//    for (size_t i = 0; i < Npop; ++i)
-//    {
-//        // loop through the different traits
-//        for (size_t j1 = 0; j1 < 2; ++j1)
-//        {
-//            // loop again through the different traits 
-//            // as we calculate covs
-//            for (size_t j2 = 0; j2 < 2; ++j2)
-//            {
-//                // phenotypic variance. Should be very similar
-//                // to genetic variance calculated above, except that
-//                // genetic variance measure also takes disequilibria
-//                // between loci into account
-//                ssphen[j1][j2] += Pop[i].phen[j1] * Pop[i].phen[j2];
-//
-//                // loop through the different loci
-//                for (size_t k1 = 0; k1 < n_loci_g; ++k1)
-//                {
-//                    // loop again through the different loci
-//                    for (size_t k2 = 0; k2 < n_loci_g; ++k2)
-//                    {
-//                        // loop through the different alleles per locus
-//                        for (size_t l1 = 0; l1 < 2; ++l1)
-//                        {
-//                            // loop through the different alleles per locus
-//                            for (size_t l2 = 0; l2 < 2; ++l2)
-//                            {
-//                                // calculate G
-//                                ssg[j1][j2] += Pop[i].z[k1][j1][l1] * Pop[i].z[k2][j2][l2];
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-    
     DataFile << generation << ";";
 
     for (size_t j1 = 0; j1 < 2; ++j1)
@@ -565,10 +522,18 @@ void WriteData()
         meanphen[j1] /= Nf + Nm;
         meangen[j1] /= Nf + Nm; 
         DataFile << meanphen[j1] << ";";
+
+        for (size_t j2 = 0; j2 < 2; ++j2)
+        {
+            meanm[j1][j2] /= Nf + Nm;
+            DataFile << meanm[j1][j2] << ";";
+        }
+
     }
 
     double G[2][2];
     double P[2][2];
+    double Gm[2][2];
 
     for (size_t j1 = 0; j1 < 2; ++j1)
     {
@@ -580,11 +545,11 @@ void WriteData()
             P[j1][j2] = ssphen[j1][j2] / (Nf + Nm)
                     - meanphen[j1] * meanphen[j2];
 
-//            cout << "ssg_" << j1 + 1 << "_" << j2 + 1 << " " 
-//                << ssg[j1][j2] << " " << meangen[j1] << " " 
-//                << meangen[j2] << " " << endl;
-//
-            DataFile << G[j1][j2] << ";" << P[j1][j2] << ";";
+            Gm[j1][j2] = ssm[j1][j2] / (Nf + Nm)
+                    - meanm[j1][j2] * meanm[j1][j2];
+
+
+            DataFile << G[j1][j2] << ";" << P[j1][j2] << ";" << Gm[j1][j2] << ";";
         }
     }
 
@@ -601,14 +566,25 @@ void WriteData()
 // write the headers of a datafile
 void WriteDataHeaders()
 {
-    DataFile << "generation;meanz1;meanz2;";
+    DataFile << "generation;";
+
+    for (size_t j1 = 0; j1 < 2; ++j1)
+    {
+        DataFile << "meanz" << j1 + 1 << ";";
+
+        for (size_t j2 = 0; j2 < 2; ++j2)
+        {
+            DataFile << "meanm" << j1 + 1 << j2 + 1 << ";";
+        }
+    }
 
     for (size_t j1 = 0; j1 < 2; ++j1)
     {
         for (size_t j2 = 0; j2 < 2; ++j2)
         {
             DataFile << "G" << (j1 + 1) << (j2 + 1) << ";"
-                        << "P" << (j1 + 1) << (j2 + 1) << ";";
+                        << "P" << (j1 + 1) << (j2 + 1) << ";"
+                        << "Gm" << (j1 + 1) << (j2 + 1) << ";";
         }
     }
 
@@ -634,18 +610,6 @@ int main(int argc, char ** argv)
 			WriteData();
 		}
 
-        // some output for testing
-//        if (generation == NumGen)
-//        {
-//            for (int i = 0; i < Npop; ++i)
-//            {
-//                for (int k = 0; k < n_loci_g; ++k)
-//                {
-//                    cout << generation << ";" << i << ";" << Pop[i].z[k][0][0] << ";" << Pop[i].z[k][1][0] << ";" << endl
-//                        << generation << ";" << i << ";" << Pop[i].z[k][0][1] << ";" << Pop[i].z[k][1][1] << ";" << endl;
-//                }
-//            }
-//        }
 	}
 
 	WriteParameters();
