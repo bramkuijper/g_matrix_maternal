@@ -41,7 +41,10 @@ num_rows = 5
 
 # when maternal effects are included extend the amount of rows
 if "meanm11" in colnames:
-    num_rows = 7
+    num_rows += 2
+
+if "theta1" in colnames:
+    num_rows += 1
 
 
 plt.figure(figsize=(8,16))
@@ -79,20 +82,35 @@ plt.tick_params(axis='x',which='both',bottom='on',top='on')
 plt.legend((r'$\lambda_{1}$',r'$\lambda_{2}$'),loc=2)
 plt.ylabel(r'eigenvalues $\lambda$')
 
+row = 5
+
+if "theta1" in colnames:
+    row+=1
+    plt.subplot(num_rows,1,row)
+    plt.grid(True)
+    plt.plot(dat["generation"], dat["theta1"],"r",dat["generation"], dat["theta2"],"b")
+    plt.tick_params(axis='x',which='both',bottom='on',top='on')
+    plt.legend((r'$\theta_{1}$',r'$\theta_{2}$'),loc=2)
+    plt.ylabel(r'envt optima')
+
 if "meanm11" in colnames:
-    plt.subplot(num_rows,1,6)
+    row += 1
+    plt.subplot(num_rows,1,row)
     plt.grid(True)
     plt.plot(dat["generation"], dat["meanm11"],"r",dat["generation"], dat["meanm22"],"b", dat["generation"], dat["meanm12"], "m",dat["generation"], dat["meanm21"], "#ff8500")
     plt.tick_params(axis='x',which='both',bottom='on',top='on')
     plt.legend((r'$\bar{m}_{11}$',r'$\bar{m}_{22}$',r'$\bar{m}_{12}$',r'$\bar{m}_{21}$'),loc=2)
     plt.ylabel(r'mean maternal effect')
 
-    plt.subplot(num_rows,1,7)
+    row+=1
+    plt.subplot(num_rows,1,row)
     plt.grid(True)
     plt.plot(dat["generation"], dat["Gm11"],"r",dat["generation"], dat["Gm22"],"b", dat["generation"], dat["Gm12"], "m", dat["generation"], dat["Gm21"], "#ff8500")
     plt.tick_params(axis='x',which='both',bottom='on',top='on')
     plt.legend((r'$\sigma_{{m}_{11}}^{2}$',r'$\sigma_{{m}_{22}}^{2}$',r'$\sigma_{{m}_{12}}^{2}$',r'$\sigma_{{m}_{21}}^{2}$'),loc=2)
     plt.ylabel(r'maternal effects variance')
+
+
 graphname = "graph_" + os.path.basename(filename) + ".pdf"
 plt.subplots_adjust(hspace=.3)
 plt.savefig(graphname,format="pdf")
