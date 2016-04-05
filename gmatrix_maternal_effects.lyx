@@ -7,7 +7,14 @@
 \definecolor{darkblue}{RGB}{0,4,106}
 \usepackage{doi}
 %\allowdisplaybreaks
-\usepackage{apjfonts}
+%\usepackage{apjfonts}
+\usepackage{titling}
+\usepackage[bold-style=upright]{unicode-math}
+\setmainfont[Ligatures=TeX,
+             BoldFont={xits-bold.otf},
+             BoldItalicFont={xits-bolditalic.otf},
+            ]{xits-regular.otf}
+\setmathfont{xits-math.otf}
 \end_preamble
 \use_default_options true
 \maintain_unincluded_children false
@@ -33,6 +40,8 @@
 \paperfontsize 12
 \spacing other 1.05
 \use_hyperref true
+\pdf_title "Evolving G and M"
+\pdf_author "Kuijper & Hoyle"
 \pdf_bookmarks true
 \pdf_bookmarksnumbered true
 \pdf_bookmarksopen true
@@ -89,6 +98,27 @@
 
 \begin_body
 
+\begin_layout Title
+Do Maternal Effects Change the Evolution of the 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+textbf{G}
+\end_layout
+
+\end_inset
+
+-matrix?
+\end_layout
+
+\begin_layout Author
+Bram Kuijper & Rebecca Hoyle
+\end_layout
+
 \begin_layout Standard
 Research plan:
 \end_layout
@@ -104,15 +134,6 @@ Research plan:
 \end_inset
 
  in a constant environment.
- Likely, negative 
-\begin_inset Formula $\mathbf{M}$
-\end_inset
-
- reduces the size of 
-\begin_inset Formula $\mathbf{G}$
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Standard
@@ -149,20 +170,728 @@ key "Jones2012"
 \end_layout
 
 \begin_layout Standard
-Other issues: 
-\begin_inset Formula $\mathbf{M}$
+5.
+ Stability measures (lots of reading to do on that one...
+ see 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Jones2012,Revell2007"
+
 \end_inset
 
- is considered as a separate set of traits, but what if they are also quantitati
-ve and belong to 
-\begin_inset Formula $\mathbf{G}$
-\end_inset
-
-?
+)
 \end_layout
 
 \begin_layout Standard
-Plasticity?
+Issues:
+\end_layout
+
+\begin_layout Standard
+1.
+ 
+\begin_inset Formula $\mathbf{M}$
+\end_inset
+
+ is, for now, considered as a separate set of traits, but what if they are
+ also quantitative and belong to 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+ (sensu 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Chevin2015"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Standard
+2.
+ Likely, referees will ask about plasticity too...
+ (but maybe this has already been done: 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Draghi2012"
+
+\end_inset
+
+).
+ 
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+Relevant literature here: 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Hether2014"
+
+\end_inset
+
+, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Turelli1988,Turelli1985"
+
+\end_inset
+
+, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Jones2014"
+
+\end_inset
+
+, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Lynch1988,Lande1975"
+
+\end_inset
+
+, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Jones2004,Jones2007"
+
+\end_inset
+
+, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Revell2007"
+
+\end_inset
+
+, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Buerger1989"
+
+\end_inset
+
+, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Walsh2009"
+
+\end_inset
+
+, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Phillips1999"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Explain that we are not interested in the additive genetic variance of 
+\begin_inset Formula $\mathbf{M}$
+\end_inset
+
+ itself, rather the effect of 
+\begin_inset Formula $\mathbf{M}$
+\end_inset
+
+ on other traits.
+\end_layout
+
+\begin_layout Section
+The model
+\end_layout
+
+\begin_layout Standard
+We extend a stochastic simulation model by 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Jones2003,Jones2012"
+
+\end_inset
+
+ by including evolving multivariate maternal effects 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Kuijper2014a"
+
+\end_inset
+
+.
+ The model by 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Jones2003"
+
+\end_inset
+
+ (see also 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Buerger1989,Buerger1994"
+
+\end_inset
+
+) considers a finite and sexual population of size 
+\begin_inset Formula $N$
+\end_inset
+
+, upon birth, endure survival selection, subsequently mate randomly and
+ finally reproduce, assuming nonoverlapping generations.
+ The model considers the evolution of two traits 
+\begin_inset Formula $\mathbf{z}=[z_{1},z_{2}]$
+\end_inset
+
+.
+ The vector of phenotypes in generation 
+\begin_inset Formula $t$
+\end_inset
+
+, 
+\begin_inset Formula $\mathbf{z}_{t}$
+\end_inset
+
+, is then given by 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Kirkpatrick1989,Kuijper2015"
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align}
+\mathbf{z}_{t} & =\mathbf{a}_{t}+\mathbf{M}_{t}\mathbf{z}_{t-1}^{*}+\mathbf{e}_{t},\label{eq:phenotype}
+\end{align}
+
+\end_inset
+
+where 
+\begin_inset Formula $\mathbf{a}_{t}=[a_{1,t},a_{2,t}]^{\mathrm{T}}$
+\end_inset
+
+ is the vector of additive genetic components of both traits in generation
+ 
+\begin_inset Formula $t$
+\end_inset
+
+.
+ The additive genetic effects are determined by 
+\begin_inset Formula $n=50$
+\end_inset
+
+ unlinked, pleiotropic and diploid loci in accordance to the model by 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Jones2003"
+
+\end_inset
+
+.
+ A mutation at one of these loci results in a new allele with effects on
+ both traits.
+ These effects are drawn from a bivariate Gaussian distribution with means
+ of zero and variances 
+\begin_inset Formula $\nu_{a_{1}}^{2}=\nu_{a_{2}}^{2}=0.05$
+\end_inset
+
+ and a correlation of 
+\begin_inset Formula $r_{\mu}$
+\end_inset
+
+, again identical to the model by 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Jones2003"
+
+\end_inset
+
+.
+ These values are then added to the existing effects of the allele in question,
+ reflecting a continuum of alleles model 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Kimura1964"
+
+\end_inset
+
+.
+ The 
+\begin_inset Formula $2\times2$
+\end_inset
+
+ matrix 
+\begin_inset Formula $\mathbf{M}_{t}$
+\end_inset
+
+ in eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:phenotype"
+
+\end_inset
+
+) reflects the evolving multivariate maternal effects matrix, with entry
+ 
+\begin_inset Formula $m_{ij,t}$
+\end_inset
+
+ reflecting the strength with which maternal phenotype 
+\begin_inset Formula $z_{j,t-1}^{*}$
+\end_inset
+
+ affects the offspring phenotype 
+\begin_inset Formula $i$
+\end_inset
+
+.
+ We assume that each entry 
+\begin_inset Formula $m_{ij,t}$
+\end_inset
+
+ is coded by a single, unlinked diploid locus expressed in the offspring
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Kuijper2014a,Kuijper2015"
+
+\end_inset
+
+.
+ Also here, mutation occurs in accordance with a continuum-of-alleles model,
+ where effects are drawn from a univariate Gaussian distribution with means
+ of zero and variance 
+\begin_inset Formula $\nu_{m_{ij}}^{2}=0.0025$
+\end_inset
+
+.
+ We assume that only those parents reproduce who have overcome survival
+ selection, hence we denote parental phenotypes 
+\begin_inset Formula $\mathbf{z}_{t-1}$
+\end_inset
+
+ in eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:phenotype"
+
+\end_inset
+
+) by a 
+\begin_inset Formula $*$
+\end_inset
+
+.
+ Finally, 
+\begin_inset Formula $\mathbf{e}_{t}=[e_{1,t},e_{2,t}]^{\mathrm{T}}$
+\end_inset
+
+ reflects the amount of random variation added to each phenotype, where
+ 
+\begin_inset Formula $e_{i,t}$
+\end_inset
+
+ is a random number drawn from a Gaussian distribution with a mean of zero
+ and variance of one.
+ Environmental effects are uncorrelated between different phenotypes.
+\end_layout
+
+\begin_layout Standard
+During the survival stage following birth of an individual, the fitness
+ 
+\begin_inset Formula $W$
+\end_inset
+
+ of a phenotype 
+\begin_inset Formula $\mathbf{z}_{t}$
+\end_inset
+
+ in generation 
+\begin_inset Formula $t$
+\end_inset
+
+ is given by
+\begin_inset Formula 
+\begin{align}
+W\left(\mathbf{z}_{t}\right) & =\mathrm{exp}\left[-\frac{1}{2}\left(\mathbf{z}_{t}-\mathbf{\theta}_{t}\right)^{\mathrm{T}}\mathbf{\omega}_{t}^{-1}\left(\mathbf{z}_{t}-\mathbf{\theta}_{t}\right)\right],\label{eq:selection}
+\end{align}
+
+\end_inset
+
+where 
+\begin_inset Formula $\mathbf{\theta}_{t}=[\theta_{1,t},\theta_{2,t}]$
+\end_inset
+
+ is the column vector of trait optima in generation 
+\begin_inset Formula $t$
+\end_inset
+
+, 
+\begin_inset Formula $\mathrm{T}$
+\end_inset
+
+ denotes transposition.
+ The matrix 
+\begin_inset Formula $\mathbf{\omega}_{t}$
+\end_inset
+
+ reflects the curvature and orientiation of the individual selection surface
+ at time 
+\begin_inset Formula $t$
+\end_inset
+
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Arnold2008"
+
+\end_inset
+
+.
+ For the two-character case considered here, the elements 
+\begin_inset Formula $\omega_{11}$
+\end_inset
+
+ and 
+\begin_inset Formula $\omega_{22}$
+\end_inset
+
+ reflect inverse measures of the strength of stabilizing selection (larger
+ values resulting in weaker stabilizing selection).
+ The orientation of the selection surface is determined by 
+\begin_inset Formula $\omega_{12}$
+\end_inset
+
+, which is analogous to the covariance of a bivariate normal distribution.
+ Individual-based simulations have been coded in C++ and are available from
+ github: 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+https://github.com/megabyte22/g_matrix_maternal.git
+\end_layout
+
+\end_inset
+
+.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Notify Adam G.
+ Jones of this.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Directionally changing environments
+\end_layout
+
+\begin_layout Standard
+The vector of trait optima in the next generation 
+\begin_inset Formula $\mathbf{\theta}_{t+1}$
+\end_inset
+
+ is given by
+\begin_inset Formula 
+\begin{align}
+\mathbf{\theta}_{t+1} & =\mathbf{\theta}_{t}+\delta_{t}\left[\mathbf{u}+\mathbf{\xi}_{t}\right],\label{eq:change_optimum}
+\end{align}
+
+\end_inset
+
+where episodic change in the optima is reflected by Kronecker's delta 
+\begin_inset Formula $\delta_{t}$
+\end_inset
+
+, which is only 
+\begin_inset Formula $1$
+\end_inset
+
+ every 
+\begin_inset Formula $k$
+\end_inset
+
+th generation and 
+\begin_inset Formula $0$
+\end_inset
+
+ otherwise.
+ The constant vector 
+\begin_inset Formula $\mathbf{u}$
+\end_inset
+
+ reflects the amount of deterministic change in each optimum; we vary the
+ sign and magnitude of change between optima as follows: when the angle
+ is 
+\begin_inset Formula $0$
+\end_inset
+
+, both optima experience identical change at magnitude 
+\begin_inset Formula $\upsilon$
+\end_inset
+
+; angle 
+\begin_inset Formula $45^{\circ}:$
+\end_inset
+
+ 
+\begin_inset Formula $u_{1}=0,u_{2}=\upsilon$
+\end_inset
+
+; angle 
+\begin_inset Formula $90^{\circ}$
+\end_inset
+
+: 
+\begin_inset Formula $u_{1}=-\upsilon,u_{2}=\upsilon$
+\end_inset
+
+; angle 
+\begin_inset Formula $135^{\circ}$
+\end_inset
+
+: 
+\begin_inset Formula $u_{1}=0,u_{2}=-\upsilon$
+\end_inset
+
+.
+ Finally, the vector 
+\begin_inset Formula $\mathbf{\xi}_{t}$
+\end_inset
+
+ reflects any stochastic changes in optima, where each deviate 
+\begin_inset Formula $\xi_{i,t}$
+\end_inset
+
+ is drawn from a Gaussian distribution with mean 
+\begin_inset Formula $0$
+\end_inset
+
+ and variance 
+\begin_inset Formula $\sigma_{\theta}^{2}$
+\end_inset
+
+.
+ Note that the dynamic above generalizes the three scenarios considered
+ by 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Jones2012"
+
+\end_inset
+
+: when 
+\begin_inset Formula $\sigma_{\theta}^{2}=0$
+\end_inset
+
+ and 
+\begin_inset Formula $\delta_{t}$
+\end_inset
+
+ is 
+\begin_inset Formula $1$
+\end_inset
+
+ every generation, we obtain their scenario of continuous `steady' movement
+ of the optima; when 
+\begin_inset Formula $\sigma_{\theta}^{2}=0$
+\end_inset
+
+ and 
+\begin_inset Formula $\delta_{t}$
+\end_inset
+
+ is not 1 every generation, the changes in the optima reflect their `episodic'
+ scenario and when 
+\begin_inset Formula $\sigma_{\theta}^{2}>0$
+\end_inset
+
+ and 
+\begin_inset Formula $\delta_{t}$
+\end_inset
+
+ is 1 every generation, we recover their scenario of `stochastic movement'.
+\end_layout
+
+\begin_layout Paragraph
+Environments with fluctuating optima
+\end_layout
+
+\begin_layout Paragraph
+Fluctuating correlational mutation and selection
+\end_layout
+
+\begin_layout Standard
+Following 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Revell2007"
+
+\end_inset
+
+, we also consider the impact of evolving maternal effects when the mutational
+ correlation 
+\begin_inset Formula $r_{\mu,t+1}$
+\end_inset
+
+ at timestep 
+\begin_inset Formula $t+1$
+\end_inset
+
+ fluctuates according to a random walk, given by 
+\begin_inset Formula $r_{\mu,t+1}=r_{\mu,t}+\varepsilon_{t}$
+\end_inset
+
+, where 
+\begin_inset Formula $\varepsilon_{t}$
+\end_inset
+
+ is drawn from a Gaussian distribution with mean of zero and variance 
+\begin_inset Formula $\sigma_{r_{\mu}}^{2}$
+\end_inset
+
+.
+ Similar to 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Revell2007"
+
+\end_inset
+
+ we also consider another version of the model 
+\end_layout
+
+\begin_layout Section
+Results
+\end_layout
+
+\begin_layout Subsection
+The evolution of M and G in a constant environment
+\end_layout
+
+\begin_layout Standard
+Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:constant_environment:ellipses"
+
+\end_inset
+
+ shows that maternal effects have little effect on the directionality of
+ the 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+-matrix in a constant environment.
+ In general, the directionality and curvature of 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+ matrices are larger in the presence of evolving maternal effects.
+ This suggests that the canalizing force of negative maternal effects free
+ 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+ from any selective constraints in a constant environment.
+\end_layout
+
+\begin_layout Standard
+- todo: plot values of eccentricity and other measures to compare matrices.
+\end_layout
+
+\begin_layout Subsection
+Episodic, directional selection
+\end_layout
+
+\begin_layout Standard
+In case of a steady moving optimum, Figures 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:steady_change:omega9"
+
+\end_inset
+
+A-D show that maternal effects constrain the directionality and curvature
+ of 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+, sometimes substantially so.
+ The effect of maternal effects on the evolution of 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+ is, however, less substantial when changes in both optima are partially
+ stochastic Figures 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:steady_change:omega9"
+
+\end_inset
+
+E-F, or when angles are at 
+\begin_inset Formula $45^{\circ}$
+\end_inset
+
+or 
+\begin_inset Formula $135^{\circ}$
+\end_inset
+
+.
+ The latter is unsurprising as 
+\begin_inset Formula $45^{\circ}$
+\end_inset
+
+ or 
+\begin_inset Formula $135^{\circ}$
+\end_inset
+
+ involve changes that are 
+\begin_inset Formula $\pm\upsilon$
+\end_inset
+
+ for one optimum, yet 
+\begin_inset Formula $0$
+\end_inset
+
+ for the other optimum (see methods).
+ Differences become less pronounced when selection is weak 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:steady_change:omega49"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In case of an episodically moving optimum (moving every 100th generation),
+ Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:episodic_change:omega9"
+
+\end_inset
+
+ shows that results are extremely similar to the case of a steadily moving
+ optimum (try larger changes in optima).
 \end_layout
 
 \begin_layout Paragraph
@@ -170,8 +899,260 @@ Acknowledgements
 \end_layout
 
 \begin_layout Standard
-We thank Adam G.
- Jones for kindly sharing his source code.
+We are indebted to Adam G.
+ Jones for kindly sharing his C++ source code.
+\end_layout
+
+\begin_layout Section
+Discussion
+\end_layout
+
+\begin_layout Standard
+Mention some recent results on evolutionarily constant IGEs where 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+ evolves always in directions contrasting to 
+\begin_inset Formula $\mathbf{\psi}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+Figures
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename figs/g_constant/ellipses_constant_envt.pdf
+	scale 70
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Maternal effects have little influence on the 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+-matrix in constant, correlated environments.
+ Ellipses depict the eigenvectors of the evolved 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+ matrix.
+ Corresponding values of 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+ and associated values of 
+\begin_inset Formula $\mathbf{M}$
+\end_inset
+
+ can be found in Supplementary Figure XX.
+ Average eigenvectors of 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+ are measured at 
+\begin_inset Formula $t=30\thinspace000$
+\end_inset
+
+, averaged over 10 replicate simulations for each parameter combination.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:constant_environment:ellipses"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename figs/g_peak/ellipses_int_1_omega_ii_9.pdf
+	scale 70
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Orientation and curvature of the 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+-matrix when the environment changes at a steady rate each generation (red:
+ evolving maternal effects present; blue: evolving maternal effects absent).
+ Average eigenvectors of 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+ are measured at 
+\begin_inset Formula $t=30\thinspace000$
+\end_inset
+
+, averaged over 10 replicate simulations for each parameter combination.
+ Parameters: 
+\begin_inset Formula $\omega_{11}=\omega_{22}=9$
+\end_inset
+
+.
+ The per-generation change in each optimum is 
+\begin_inset Formula $\upsilon=0.0017$
+\end_inset
+
+ as in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Jones2012"
+
+\end_inset
+
+.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:steady_change:omega9"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename figs/g_peak/ellipses_int_100_omega_ii_9.pdf
+	scale 70
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Orientation and curvature of the 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+-matrix in an episodically changing environment that changes every 100 generatio
+ns (red: evolving maternal effects present; blue: evolving maternal effects
+ absent).
+ Average eigenvectors of 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+ are measured at 
+\begin_inset Formula $t=30\thinspace000$
+\end_inset
+
+, averaged over 10 replicate simulations for each parameter combination.
+ Parameters: 
+\begin_inset Formula $\omega_{11}=\omega_{22}=9$
+\end_inset
+
+.
+ The per-generation change in each optimum is 
+\begin_inset Formula $\upsilon=0.0017$
+\end_inset
+
+ as in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Jones2012"
+
+\end_inset
+
+.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:episodic_change:omega9"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+clearpage
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -179,6 +1160,285 @@ We thank Adam G.
 LatexCommand bibtex
 bibfiles "/home/bram/Projects/databases/transgenerational"
 options "bram"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+clearpage
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang british
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+clearpage
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+setcounter{equation}{0}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+setcounter{section}{0}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+setcounter{table}{0}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+setcounter{figure}{0}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+theequation{S
+\backslash
+arabic{equation}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+theHsection{S
+\backslash
+arabic{section}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+thesection{S
+\backslash
+arabic{section}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+thefigure{S
+\backslash
+arabic{figure}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+thetable{S
+\backslash
+arabic{table}}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{center}
+\end_layout
+
+\end_inset
+
+
+\size large
+Supplementary Information to:
+\end_layout
+
+\begin_layout Standard
+
+\size large
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+thetitle
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+theauthor
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{center}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Supplementary figures
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename figs/g_peak/ellipses_int_1_omega_ii_49.pdf
+	scale 70
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Orientation and curvature of the 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+-matrix when the environment changes at a steady rate each generation 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+emph{and selection is weak}
+\end_layout
+
+\end_inset
+
+ (red: evolving maternal effects present; blue: evolving maternal effects
+ absent).
+ Average eigenvectors of 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+ are measured at 
+\begin_inset Formula $t=30\thinspace000$
+\end_inset
+
+, averaged over 10 replicate simulations for each parameter combination.
+ Parameters: 
+\begin_inset Formula $\omega_{11}=\omega_{22}=9$
+\end_inset
+
+.
+ The per-generation change in each optimum is 
+\begin_inset Formula $\upsilon=0.0017$
+\end_inset
+
+ as in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Jones2012"
+
+\end_inset
+
+.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:steady_change:omega49"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
 
 \end_inset
 

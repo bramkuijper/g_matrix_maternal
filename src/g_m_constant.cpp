@@ -122,7 +122,7 @@ ofstream distfile(filename_new2.c_str());
 #endif //DISTRIBUTION
 
 
-// bivariate Gaussian fitness function as in Revell 2007
+// bivariate Gaussian fitness function as in Jones et al 2003
 double v(double const z1, double const z2)
 {
     // Exp[-1/2 * (z^T . Inverse[omega] . z )] can be simplified as
