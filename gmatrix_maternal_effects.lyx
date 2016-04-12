@@ -226,6 +226,32 @@ Introduction
 \end_layout
 
 \begin_layout Standard
+The genetic variance-covariance matrix (
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+-matrix) plays a key role in phenotypic evolution, as it affects the population'
+s ability to respond to selection and its susceptibility to genetic drift.
+ Consequently, the 
+\begin_inset Formula $\mathbf{G}$
+\end_inset
+
+-matrix is used to assess a population's capacity to evolve in response
+ to selection 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+cite
+\end_layout
+
+\end_inset
+
+, reconstruct historical patterns of selection and test the importance of
+ genetic drift in driving population differentiation.
+\end_layout
+
+\begin_layout Standard
 Relevant literature here: 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -316,21 +342,6 @@ key "Jones2003,Jones2012"
 
 \end_inset
 
- by including evolving multivariate maternal effects 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Kuijper2014a"
-
-\end_inset
-
-.
- The model by 
-\begin_inset CommandInset citation
-LatexCommand citet
-key "Jones2003"
-
-\end_inset
-
  (see also 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -338,12 +349,21 @@ key "Buerger1989,Buerger1994"
 
 \end_inset
 
-) considers a finite and sexual population of size 
+) by including evolving multivariate maternal effects 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Kuijper2014a,Kuijper2015"
+
+\end_inset
+
+.
+ Our model considers a finite and sexual population of size 
 \begin_inset Formula $N$
 \end_inset
 
-, upon birth, endure survival selection, subsequently mate randomly and
- finally reproduce, assuming nonoverlapping generations.
+ (see below).
+ Upon birth, each individual endures survival selection, then mates randomly
+ and finally reproduces, assuming discrete and nonoverlapping generations.
  The model considers the evolution of two traits 
 \begin_inset Formula $\mathbf{z}=[z_{1},z_{2}]$
 \end_inset
