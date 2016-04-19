@@ -35,7 +35,7 @@ const int NumGen = 50000;
 const int Npop = 3000; 
 
 // number of generations to skip when outputting data
-const int skip = 1;
+const int skip = 10;
 
 // number of loci
 const int n_loci_g = 50;
@@ -88,6 +88,20 @@ double meancov = 0;
 
 // mean fitness
 double meanw = 0;
+
+// variables to calculate deltas
+double Gtmin1[2][2] = {{0,0},{0,0}};
+double max_delta_G[2][2] = {{0,0},{0,0}};
+double min_delta_G[2][2] = {{0,0},{0,0}};
+
+double ev1_tmin1 = 0;
+double ev2_tmin1 = 0;
+
+double ecc_tmin1 = 0;
+double size_tmin1 = 0;
+
+double angleLead_tmin1 = 0;
+double angleSecond_tmin1 = 0;
 
 // indicator variable if we are printing stats for this generation
 bool do_stats = 0;
@@ -558,7 +572,7 @@ void Reproduce_Survive()
 
 
 // write down summary statistics
-void WriteData()
+void WriteData(bool output)
 {
     // genotypic and phenotypic means
     double meangen[2] = {0,0};
@@ -613,25 +627,38 @@ void WriteData()
         }
     }
 
-    DataFile << generation << ";" << r_mu << ";" << r_omega << ";";
+
+    if (output)
+    {
+        DataFile << generation << ";";
+    }
 
     for (size_t j1 = 0; j1 < 2; ++j1)
     {
         meanphen[j1] /= Nf + Nm;
         meangen[j1] /= Nf + Nm; 
-        DataFile << meanphen[j1] << ";";
+
+        if (output)
+        {
+            DataFile << meanphen[j1] << ";";
+        }
 
         for (size_t j2 = 0; j2 < 2; ++j2)
         {
             meanm[j1][j2] /= Nf + Nm;
-            DataFile << meanm[j1][j2] << ";";
-        }
 
+            if (output)
+            {
+                DataFile << meanm[j1][j2] << ";";
+            }
+        }
     }
 
     double G[2][2];
     double P[2][2];
     double Gm[2][2];
+
+    double delta_G[2][2];
 
     for (size_t j1 = 0; j1 < 2; ++j1)
     {
@@ -646,10 +673,27 @@ void WriteData()
             Gm[j1][j2] = ssm[j1][j2] / (Nf + Nm)
                     - meanm[j1][j2] * meanm[j1][j2];
 
+            // calculate delta G
+            delta_G[j1][j2] = G[j1][j2] - Gtmin1[j1][j2];
+            Gtmin1[j1][j2] = G[j1][j2];
 
-            DataFile << G[j1][j2] << ";" << P[j1][j2] << ";" << Gm[j1][j2] << ";";
+            if (delta_G[j1][j2] > max_delta_G[j1][j2])
+            {
+                max_delta_G[j1][j2] = delta_G[j1][j2];
+            }
+
+            if (delta_G[j1][j2] < min_delta_G[j1][j2])
+            {
+                min_delta_G[j1][j2] = delta_G[j1][j2];
+            }
+
+            if (output)
+            {
+                DataFile << G[j1][j2] << ";" << P[j1][j2] << ";" << Gm[j1][j2] << ";" << delta_G[j1][j2] << ";" << max_delta_G[j1][j2] << ";" << min_delta_G[j1][j2] << ";";
+            }
         }
     }
+
 
     double trace = G[0][0] + G[1][1];
     double det = G[0][0] * G[1][1] - G[1][0] * G[0][1];
@@ -657,6 +701,12 @@ void WriteData()
     // calculate eigenvalues
     double ev1 = .5 * (trace + sqrt(trace*trace - 4 * det));
     double ev2 = .5 * (trace - sqrt(trace*trace - 4 * det));
+
+    double delta_ev1 = ev1 - ev1_tmin1;
+    double delta_ev2 = ev2 - ev2_tmin1;
+    
+    ev1_tmin1 = ev1;
+    ev2_tmin1 = ev2;
 
     double evec1[2] = {0,0};
     double evec2[2] = {0,0};
@@ -690,27 +740,48 @@ void WriteData()
     double angleLead = atan(evec1[1]/evec1[0]) * 180.00/M_PI;
     double angleSecond = atan(evec2[1]/evec2[0]) * 180.00/M_PI;
 
+    double delta_angleLead = angleLead - angleLead_tmin1;
+    angleLead_tmin1 = angleLead;
+
+    double delta_angleSecond = angleSecond - angleSecond_tmin1;
+    angleSecond_tmin1 = angleSecond;
+
     double ecc = ev1 < ev2 ? ev1/ev2 : ev2/ev1;
 
+    double delta_ecc = ecc - ecc_tmin1;
+    ecc_tmin1 = ecc;
+
+    double delta_size = ev1 + ev2 - size_tmin1;
+    size_tmin1 = ev1 + ev2;
+
+    if (output)
+    {
     DataFile << trace << ";" 
         << det << ";" 
         << ev1 << ";" 
         << ev2 << ";" 
+        << delta_ev1 << ";"
+        << delta_ev2 << ";"
         << (ev1+ev2) << ";" 
+        << delta_size << ";" 
         << ecc << ";" 
+        << delta_ecc << ";" 
         << angleLead << ";"
         << angleSecond << ";"
+        << delta_angleLead << ";"
+        << delta_angleSecond << ";"
         << meanw << ";" 
         << theta1 << ";" 
         << theta2 << ";" 
         << endl;
 
+    }
 }
 
 // write the headers of a datafile
 void WriteDataHeaders()
 {
-    DataFile << "generation;rmu;romega;";
+    DataFile << "generation;";
 
     for (size_t j1 = 0; j1 < 2; ++j1)
     {
@@ -728,11 +799,14 @@ void WriteDataHeaders()
         {
             DataFile << "G" << (j1 + 1) << (j2 + 1) << ";"
                         << "P" << (j1 + 1) << (j2 + 1) << ";"
-                        << "Gm" << (j1 + 1) << (j2 + 1) << ";";
+                        << "Gm" << (j1 + 1) << (j2 + 1) << ";"
+                        << "delta_G" << (j1 + 1) << (j2 + 1) << ";"
+                        << "max_delta_G" << (j1 + 1) << (j2 + 1) << ";"
+                        << "min_delta_G" << (j1 + 1) << (j2 + 1) << ";";
         }
     }
 
-    DataFile << "trace;det;ev1;ev2;size;ecc;angle_lead;angle_second;meanw;theta1;theta2;" << endl;
+    DataFile << "trace;det;ev1;ev2;delta_ev1;delta_ev2;size;delta_size;ecc;delta_ecc;angle_lead;angle_second;delta_engle_lead;delta_angle_second;meanw;theta1;theta2;" << endl;
 }
 
 
@@ -749,10 +823,8 @@ int main(int argc, char ** argv)
 
         // output stats every xth generation except for the last 2000 gens
         do_stats = generation % skip == 0;
-        if (do_stats || generation > NumGen - 2000)
-		{
-			WriteData();
-		}
+
+        WriteData(do_stats || generation > NumGen - 2000);
 
 	}
 
