@@ -29,13 +29,13 @@ using namespace std;
 ///////////////////     PARAMS      ///////////////////
 
 // number of generations
-const int NumGen = 30000;
+const int NumGen = 50000;
 
 // population size
-const int Npop = 1366; 
+const int Npop = 3000; 
 
 // number of generations to skip when outputting data
-const int skip = 20;
+const int skip = 1;
 
 // number of loci
 const int n_loci_g = 50;
@@ -45,7 +45,7 @@ double a1 = 0;
 double a2 = 0;
 
 // mutational correlation
-double rmu = 0;
+double r_mu = 0;
 
 // mutation rate conventional gene loci
 double mu = 0;
@@ -54,11 +54,24 @@ double mu = 0;
 double mu_m = 0;
 double sdmu_m = 0;
 
+// initial number of generations without change 
+int burnin = 5000;
+
 // strengths of selection
 double omega[2][2] = {{0,0},{0,0}};
 
-// fecundity per individual
-double B = 0;
+// strength of correlated selection
+double r_omega = 0;
+
+// optima 
+double theta1 = 0;
+double theta2 = 0;
+
+// stdev in temporal fluctuations in r_omega
+double sigma_r_omega = 0;
+
+// stdev in temporal fluctuations in r_mu
+double sigma_r_mu = 0;
 
 ///////////////////     STATS       ///////////////////
 
@@ -110,6 +123,11 @@ typedef Individual NewPopulation[Npop*2*10];
 Population Males, Females;
 NewPopulation NewPop;
 
+double distMales[Npop];
+double distFemales[Npop];
+double sum_dist_males = 0;
+double sum_dist_females = 0;
+
 // generate a unique filename for the output file
 string filename("sim_Gmatrix");
 string filename_new(create_filename(filename));
@@ -122,16 +140,38 @@ ofstream distfile(filename_new2.c_str());
 #endif //DISTRIBUTION
 
 
-// bivariate Gaussian fitness function as in Revell 2007
+// auxiliary function for reflexive boundaries of the correlation
+// coefficients (p. 1858 in Revell 2007)
+void boundary(double &r_x)
+{
+    while(true)
+    {
+        if (r_x < -1.0)
+        {
+            r_x = r_x + fabs(r_x + 1.0);
+        } 
+        else if (r_x > 1.0)
+        {
+            r_x = r_x - (r_x - 1.0);
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
+
+// bivariate Gaussian fitness function as in Jones et al 2003 with theta_i 
 double v(double const z1, double const z2)
 {
-    // Exp[-1/2 * (z^T . Inverse[omega] . z )] can be simplified as
     return(
-            exp(
-                    -.5 * (z1*z1 * omega[1][1] + z2 * (-omega[0][1] * z1 - omega[1][0] * z1 + z2 * omega[0][0])) / 
-                    (-omega[1][0] * omega[1][0] + omega[0][0] * omega[1][1])
-               )
-          );
+         exp(-.5 * ( 
+             (z1 - theta1) * (z1 - theta1) * omega[1][1] 
+             - 2 * omega[0][1] * (z1 - theta1) * (z2 - theta2)
+             + (z2 - theta2) * (z2 - theta2) * omega[0][0] 
+            )/ (omega[0][0] * omega[1][1] - omega[1][0] * omega[1][0])
+         ));
 }
 
 
@@ -140,17 +180,27 @@ void initArguments(int argc, char *argv[])
 {
     a1 = atof(argv[1]);
     a2 = atof(argv[2]);
-    rmu = atof(argv[3]);
+    r_mu = atof(argv[3]);
     mu = atof(argv[4]);
     mu_m = atof(argv[5]);
     sdmu_m = atof(argv[6]);
     omega[0][0] = atof(argv[7]);
-    omega[0][1] = atof(argv[8]);
-    omega[1][0] = atof(argv[9]);
-    omega[1][1] = atof(argv[10]);
-    B = atof(argv[11]);
+    omega[1][1] = atof(argv[8]);
+    r_omega = atof(argv[9]);
+    sigma_r_omega = atof(argv[10]);
+    sigma_r_mu = atof(argv[11]);
 
-    assert(B < 10);
+
+    omega[1][0] = omega[0][1] = r_omega * sqrt(omega[0][0] * omega[1][1]);
+
+    double test_r = 5;
+    boundary(test_r);
+
+    assert(test_r >= -1.0 && test_r <= 1.0);
+    
+    test_r = -5;
+    boundary(test_r);
+    assert(test_r >= -1.0 && test_r <= 1.0);
 }
 
 
@@ -177,9 +227,7 @@ void MutateG(Individual &ind)
             // generate new allelic increments a,b by drawing them
             // from a bivariate gaussian distribution with std deviations a1, a2
             // and 
-            gsl_ran_bivariate_gaussian(r, a1, a2, rmu, &a, &b);
-
-            //cout << a << ";" << b << endl;
+            gsl_ran_bivariate_gaussian(r, a1, a2, r_mu, &a, &b);
 
             // add the new allelic effect to trait one
             ind.g[0][locus_i][0] += a;
@@ -196,7 +244,7 @@ void MutateG(Individual &ind)
             // generate new allelic increments a,b by drawing them
             // from a bivariate gaussian distribution with std deviations a1, a2
             // and 
-            gsl_ran_bivariate_gaussian(r, a1, a2, rmu, &a, &b);
+            gsl_ran_bivariate_gaussian(r, a1, a2, r_mu, &a, &b);
 
             // add the new allelic effect to trait one
             ind.g[0][locus_i][1] += a;
@@ -226,18 +274,19 @@ void WriteParameters()
 	DataFile << endl
 		<< endl 
         << "npop;" << Npop << endl
+        << "seed;" << seed << endl
         << "nloci_g;" << n_loci_g << endl
         << "a1;" << a1 << endl 
         << "a2;" << a2 << endl
-        << "rmu;" << rmu << endl
+        << "r_mu;" << r_mu << endl
         << "mu;" << mu << endl
         << "mu_m;" << mu_m << endl
         << "sdmu_m;" << sdmu_m << endl
         << "omega_11;" << omega[0][0] << endl
-        << "omega_12;" << omega[0][1] << endl
-        << "omega_21;" << omega[1][0] << endl
         << "omega_22;" << omega[1][1] << endl
-        << "B;" << B << endl;
+        << "r_omega;" << r_omega << endl
+        << "sigma_r_omega;" << sigma_r_omega << endl
+        << "sigma_r_mu;" << sigma_r_mu << endl;
 }
 
 // initialize the simulation
@@ -251,19 +300,16 @@ void Init()
     // to initialize the seed
 	seed = get_nanoseconds();
     
-    // set the seed to the random number generator
-    // stupidly enough, for gsl this can only be done by setting
-    // a shell environment parameter
-    stringstream s;
-    s << "GSL_RNG_SEED=" << setprecision(10) << seed;
-    putenv(const_cast<char *>(s.str().c_str()));
-
     // set up the random number generators
     // (from the gnu gsl library)
     gsl_rng_env_setup();
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
+    gsl_rng_set(r, seed);
 
+
+    sum_dist_males = 0;
+    sum_dist_females = 0;
 
 	// initialize the whole population
 	for (size_t i = 0; i < Npop/2; ++i)
@@ -271,9 +317,9 @@ void Init()
         // loop through the different characters
         for (size_t trait_i = 0; trait_i < 2; ++trait_i)
         {
-            Males[i].phen[trait_i] = 0;
+            Males[i].phen[trait_i] = gsl_rng_uniform(r) * 0.2;
             Males[i].gen[trait_i] = 0;
-            Females[i].phen[trait_i] = 0;
+            Females[i].phen[trait_i] = gsl_rng_uniform(r) * 0.2;
             Females[i].gen[trait_i] = 0;
                         
             // loop through each of the loci
@@ -286,6 +332,21 @@ void Init()
                     Females[i].g[trait_i][j][k] = 0;
                 }
             }
+
+            distMales[i] = sum_dist_males + v(
+                    Males[i].phen[0], 
+                    Males[i].phen[1]
+            );
+
+            sum_dist_males = distMales[i];
+
+            distFemales[i] = sum_dist_females + v(
+                    Females[i].phen[0], 
+                    Females[i].phen[1]
+            );
+
+            sum_dist_females = distFemales[i];
+
         }
 	}
 
@@ -362,6 +423,15 @@ void Create_Kid(size_t const mother, size_t const father, Individual &kid)
     kid.phen[1] = kid.gen[1] + gsl_ran_gaussian(r,1.0) + (kid.m[1][0][0] + kid.m[1][0][1]) * Mother.phen[0] + (kid.m[1][1][0] + kid.m[1][1][1]) * Mother.phen[1];
 }
 
+bool possM(size_t const x, double const val)
+{
+    return(val > distMales[x]);
+}
+
+bool possF(size_t const x, double const val)
+{
+    return(val > distFemales[x]);
+}
 
 // Survival of juveniles to reproductive adults
 void Reproduce_Survive()
@@ -372,57 +442,48 @@ void Reproduce_Survive()
     // stats for average fitness
     meanw = 0;
 
-    double w;
+    int father = 0;
+    int mother = 0;
+
+    double rand_dev = 0;
 
     // stats for genetic covariance within offspring
     meancov = 0;
 
-    for (size_t i = 0; i < Nf; ++i)
+    for (size_t i = 0; i < Npop; ++i)
     {
-        // random mating
-        size_t father = gsl_rng_uniform_int(r, Nm);
+        rand_dev = gsl_rng_uniform(r) * sum_dist_males;
 
-        // produce kids and let them survive
-        for (size_t j = 0; j < 2 * B; ++j)
+        for (size_t j = 0; j < Nm; ++j)
         {
-            Individual Kid;
-
-            // create a kid from maternal and paternal genes
-            Create_Kid(i, father, Kid);
-
-            // calculate survival
-            w = v(Kid.phen[0], Kid.phen[1]);
-
-            //cout << i << " " << father << " " << Kid.phen[0] << " " << Kid.phen[1] << " " << w << endl;
-
-
-            assert(w >= 0 && w <= 1.0);
-
-            meanw += w;
-
-            // individual survives; add to stack
-            if (gsl_rng_uniform(r) < w)
+            if (rand_dev <= distMales[j])
             {
-                NewPop[NKids++] = Kid;
-                assert(NKids < Npop * 2 * 10);
+                father = j;
+                break;
             }
         }
 
-        // remove dad
-        Males[father] = Males[--Nm];
+        
+        rand_dev = gsl_rng_uniform(r) * sum_dist_females;
 
-        if (Nm == 0)
+        for (size_t j = 0; j < Nf; ++j)
         {
-            break;
+            if (rand_dev <= distFemales[j])
+            {
+                mother = j;
+                break;
+            }
         }
+
+        Individual Kid;
+
+        // create a kid from maternal and paternal genes
+        Create_Kid(mother, father, Kid);
+
+        NewPop[NKids++] = Kid;
+        assert(NKids < Npop * 2 * 10);
     }
 
-    //cout << meancov / (Npop * 2 * B) << endl;
-
-    meanw /= Nf * 2 * B;
-
-    //cout << NKids << endl;
-    
     if (NKids < Npop)
     {
         cout << "extinct " << NKids << endl;
@@ -435,6 +496,11 @@ void Reproduce_Survive()
     Nm = 0;
     Nf = 0;
 
+    // variables to calculate a cumulative distribution
+    // of all males
+    sum_dist_males = 0;
+    sum_dist_females = 0;
+
     // sample new generation from kids
     for (size_t i = 0; i < Npop; ++i)
     {
@@ -445,16 +511,45 @@ void Reproduce_Survive()
 
         if (gsl_rng_uniform(r) < 0.5)
         {
+            distMales[Nm] = sum_dist_males + v(
+                    NewPop[random_kid].phen[0], 
+                    NewPop[random_kid].phen[1]
+            );
+
+            sum_dist_males = distMales[Nm];
+
             Males[Nm++] = NewPop[random_kid];
         }
         else
         {
+            distFemales[Nf] = sum_dist_females + v(
+                    NewPop[random_kid].phen[0], 
+                    NewPop[random_kid].phen[1]
+            );
+
+            sum_dist_females = distFemales[Nf];
+
             Females[Nf++] = NewPop[random_kid];
         }
 
         // delete kid (no resampling possible) by copying kid
         // from the end of the stack and reducing Nkids by one
         NewPop[random_kid] = NewPop[--NKids];
+    }
+
+    if (generation > 2000)
+    {
+        // change the environment
+        r_omega += gsl_ran_gaussian(r, sigma_r_omega);
+
+        boundary(r_omega);
+
+        omega[1][0] = omega[0][1] = r_omega * sqrt(omega[0][0] * omega[1][1]);
+
+        // change the mutational correlation
+        r_mu += gsl_ran_gaussian(r, sigma_r_mu);
+        
+        boundary(r_mu);
     }
 }
 
@@ -515,7 +610,7 @@ void WriteData()
         }
     }
 
-    DataFile << generation << ";";
+    DataFile << generation << ";" << r_mu << ";" << r_omega << ";";
 
     for (size_t j1 = 0; j1 < 2; ++j1)
     {
@@ -560,13 +655,59 @@ void WriteData()
     double ev1 = .5 * (trace + sqrt(trace*trace - 4 * det));
     double ev2 = .5 * (trace - sqrt(trace*trace - 4 * det));
 
-    DataFile << trace << ";" << det << ";" << ev1 << ";" << ev2 << ";" << meanw << ";" << endl;
+    double evec1[2] = {0,0};
+    double evec2[2] = {0,0};
+
+    if (G[0][1] != 0)
+    {
+         evec1[0] =  
+            (ev1 - G[1][1])/
+                sqrt((ev1 - G[1][1])*(ev1 - G[1][1])+G[0][1]*G[0][1]);
+
+         evec1[1] =
+            G[0][1]/
+                sqrt((ev1 - G[1][1])*(ev1 - G[1][1])+G[0][1]*G[0][1]);
+       
+         evec2[0] = 
+            (ev2 - G[1][1])/
+                sqrt((ev2 - G[1][1])*(ev2 - G[1][1])+G[0][1]*G[0][1]);
+
+         evec2[1] =
+            G[0][1]/
+                sqrt((ev2 - G[1][1])*(ev2 - G[1][1])+G[0][1]*G[0][1]);
+    }
+    else
+    {
+        evec1[0] = 0;
+        evec1[1] = 1;
+        evec2[0] = 1;
+        evec2[1] = 0;
+    }
+    
+    double angleLead = atan(evec1[1]/evec1[0]) * 180.00/M_PI;
+    double angleSecond = atan(evec2[1]/evec2[0]) * 180.00/M_PI;
+
+    double ecc = ev1 < ev2 ? ev1/ev2 : ev2/ev1;
+
+    DataFile << trace << ";" 
+        << det << ";" 
+        << ev1 << ";" 
+        << ev2 << ";" 
+        << (ev1+ev2) << ";" 
+        << ecc << ";" 
+        << angleLead << ";"
+        << angleSecond << ";"
+        << meanw << ";" 
+        << theta1 << ";" 
+        << theta2 << ";" 
+        << endl;
+
 }
 
 // write the headers of a datafile
 void WriteDataHeaders()
 {
-    DataFile << "generation;";
+    DataFile << "generation;rmu;romega;";
 
     for (size_t j1 = 0; j1 < 2; ++j1)
     {
@@ -588,7 +729,7 @@ void WriteDataHeaders()
         }
     }
 
-    DataFile << "trace;det;ev1;ev2;meanw;" << endl;
+    DataFile << "trace;det;ev1;ev2;size;ecc;angle_lead;angle_second;meanw;theta1;theta2;" << endl;
 }
 
 
