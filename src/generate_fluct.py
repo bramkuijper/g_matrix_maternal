@@ -3,11 +3,11 @@
 import math
 import numpy as np
 
-rmu = [ 0, 0.5, -0.5, 0.9, -0.9 ]
+rmu = [ 0, 0.9, -0.9 ]
 
-romega = [ 0, 0.5, -0.5, 0.9, -0.9 ]
+romega = [ 0, 0.9, -0.9 ]
 
-omega = [ 3 ]
+omega = [ 1, 3 ]
 
 mu = 0.0002
 

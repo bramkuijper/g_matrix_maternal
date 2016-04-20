@@ -10,6 +10,7 @@
 #include <string>
 #include <cmath>
 #include <cassert>
+#include <string.h>
 
 // random number generation
 #include <gsl/gsl_rng.h>
@@ -155,6 +156,31 @@ string filename_new2(create_filename("sim_evolving_m_dist"));
 ofstream distfile(filename_new2.c_str());
 #endif //DISTRIBUTION
 
+// functions to check ram etc
+// see http://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process 
+int parseLine(char* line){
+    int i = strlen(line);
+    while (*line < '0' || *line > '9') line++;
+    line[i-3] = '\0';
+    i = atoi(line);
+    return i;
+}
+
+int getValue(){ //Note: this value is in KB!
+    FILE* file = fopen("/proc/self/status", "r");
+    int result = -1;
+    char line[128];
+
+
+    while (fgets(line, 128, file) != NULL){
+        if (strncmp(line, "VmRSS:", 6) == 0){
+            result = parseLine(line);
+            break;
+        }
+    }
+    fclose(file);
+    return result;
+}
 
 // auxiliary function for reflexive boundaries of the correlation
 // coefficients (p. 1858 in Revell 2007)
@@ -773,6 +799,7 @@ void WriteData(bool output)
         << meanw << ";" 
         << theta1 << ";" 
         << theta2 << ";" 
+        << ((double)getValue() * 1e-06) << ";" 
         << endl;
 
     }
@@ -806,7 +833,7 @@ void WriteDataHeaders()
         }
     }
 
-    DataFile << "trace;det;ev1;ev2;delta_ev1;delta_ev2;size;delta_size;ecc;delta_ecc;angle_lead;angle_second;delta_engle_lead;delta_angle_second;meanw;theta1;theta2;" << endl;
+    DataFile << "trace;det;ev1;ev2;delta_ev1;delta_ev2;size;delta_size;ecc;delta_ecc;angle_lead;angle_second;delta_engle_lead;delta_angle_second;meanw;theta1;theta2;ram;" << endl;
 }
 
 
