@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 import pandas as pd
@@ -33,6 +33,8 @@ if parline > 0:
 else:
     dat = pd.read_csv(filename, sep=";")
 
+# only take every tenth generation, otherwise too much data....
+dat = dat[dat["generation"] % 10 == 0]
 
 colnames = dat.columns.values
 
