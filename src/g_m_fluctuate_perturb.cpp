@@ -75,6 +75,10 @@ double stoch2 = 0;
 double freq1  = 0;
 double freq2  = 0;
 double shift = 0;
+double int1= 0;
+double int2= 0;
+double int1ptb= 0;
+double int2ptb= 0;
 
 ///////////////////     STATS       ///////////////////
 
@@ -236,6 +240,10 @@ void initArguments(int argc, char *argv[])
     freq1 = atof(argv[14]);
     freq2 = atof(argv[15]);
     shift = atof(argv[16]);
+    int1 = atof(argv[17]);
+    int2 = atof(argv[18]);
+    int1ptb = atof(argv[19]);
+    int2ptb = atof(argv[20]);
 
     omega[1][0] = omega[0][1] = r_omega * sqrt(omega[0][0] * omega[1][1]);
 
@@ -333,8 +341,16 @@ void WriteParameters()
         << "r_omega;" << r_omega << endl
         << "ampl1;" << ampl1 << endl
         << "ampl2;" << ampl2 << endl
+        << "int1;" << int1 << endl
+        << "int2;" << int2 << endl
+        << "int1ptb;" << int1ptb << endl
+        << "int2ptb;" << int2ptb << endl
         << "stoch1;" << stoch1 << endl
         << "stoch2;" << stoch2 << endl
+        << "int1;" << int1 << endl
+        << "int2;" << int2 << endl
+        << "int1ptb;" << int1ptb << endl
+        << "int2ptb;" << int2ptb << endl
         << "shift;" << shift << endl
         << "freq1;" << freq1 << endl
         << "freq2;" << freq2 << endl; 
@@ -591,8 +607,15 @@ void Reproduce_Survive()
     if (generation > 2000)
     {
         // change the environment
-        theta1 = ampl1 * sin(freq1 * (generation + shift)) + stoch1 * gsl_rng_uniform(r);
-        theta2 = ampl2 * sin(freq2 * generation) + stoch2 * gsl_rng_uniform(r);
+        theta1 = int1 + ampl1 * sin(freq1 * (generation + shift)) + stoch1 * gsl_rng_uniform(r);
+        theta2 = int2 + ampl2 * sin(freq2 * generation) + stoch2 * gsl_rng_uniform(r);
+    }
+
+    // perturb things
+    if (generation == NumGen/2)
+    {
+        int1 = int1ptb;
+        int2 = int2ptb;
     }
 }
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-./xg_m_fluctuate 0.22360679775 0.22360679775  0.5     0.0002 0.02 0.02    .7 .7    0.9   1.0 1.0     0 0     0.5 0.5  .5
+./xg_m_fluctuate_perturb 0.22360679775 0.22360679775  0     0.0002 0.02 0.02    .7 .7    0   1.0 1.0     0 0     0.5 0.5  .78   0 0 1.0 0 &
+./xg_m_fluctuate_perturb 0.22360679775 0.22360679775  0     0.0002 0.02 0.02    .7 .7    0   1.0 1.0     0 0     0.5 0.5  5.5   0 0 1.0 0 &
 
 
 #    a1 = atof(argv[1]);
@@ -19,3 +20,7 @@
 #    freq1 = atof(argv[14]);
 #    freq2 = atof(argv[15]);
 #    shift = atof(argv[16]);
+#    int1 = atof(argv[17]);
+#    int2 = atof(argv[18]);
+#    int1ptb = atof(argv[19]);
+#    int2ptb = atof(argv[20]);
