@@ -55,6 +55,9 @@ double mu = 0;
 double mu_m = 0;
 double sdmu_m = 0;
 
+// envt'al stdev
+double sd_e = 0;
+
 // initial number of generations without change 
 int burnin = 5000;
 
@@ -236,6 +239,7 @@ void initArguments(int argc, char *argv[])
     freq1 = atof(argv[14]);
     freq2 = atof(argv[15]);
     shift = atof(argv[16]);
+    sd_e = atof(argv[17]);
 
     omega[1][0] = omega[0][1] = r_omega * sqrt(omega[0][0] * omega[1][1]);
 
@@ -324,6 +328,7 @@ void WriteParameters()
         << "nloci_g;" << n_loci_g << endl
         << "a1;" << a1 << endl 
         << "a2;" << a2 << endl
+        << "sd_e;" << sd_e << endl
         << "r_mu;" << r_mu << endl
         << "mu;" << mu << endl
         << "mu_m;" << mu_m << endl
@@ -470,8 +475,8 @@ void Create_Kid(size_t const mother, size_t const father, Individual &kid)
    
     // add environmental variance to each trait by adding a random number
     // drawn from a normal distribution to each phenotype
-    kid.phen[0] = kid.gen[0] + gsl_ran_gaussian(r,1.0) + (kid.m[0][0][0] + kid.m[0][0][1]) * Mother.phen[0] + (kid.m[0][1][0] + kid.m[0][1][1]) * Mother.phen[1];
-    kid.phen[1] = kid.gen[1] + gsl_ran_gaussian(r,1.0) + (kid.m[1][0][0] + kid.m[1][0][1]) * Mother.phen[0] + (kid.m[1][1][0] + kid.m[1][1][1]) * Mother.phen[1];
+    kid.phen[0] = kid.gen[0] + gsl_ran_gaussian(r,sd_e) + (kid.m[0][0][0] + kid.m[0][0][1]) * Mother.phen[0] + (kid.m[0][1][0] + kid.m[0][1][1]) * Mother.phen[1];
+    kid.phen[1] = kid.gen[1] + gsl_ran_gaussian(r,sd_e) + (kid.m[1][0][0] + kid.m[1][0][1]) * Mother.phen[0] + (kid.m[1][1][0] + kid.m[1][1][1]) * Mother.phen[1];
 }
 
 bool possM(size_t const x, double const val)
