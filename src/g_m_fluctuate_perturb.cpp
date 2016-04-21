@@ -80,6 +80,8 @@ double int2= 0;
 double int1ptb= 0;
 double int2ptb= 0;
 
+size_t B = 10;
+
 ///////////////////     STATS       ///////////////////
 
 // track number of individuals 
@@ -140,7 +142,7 @@ struct Individual
 
 // allocate a population and a population of survivors
 typedef Individual Population[Npop];
-typedef Individual NewPopulation[Npop*2*10];
+typedef Individual NewPopulation[Npop*2*20];
 Population Males, Females;
 NewPopulation NewPop;
 
@@ -509,48 +511,57 @@ void Reproduce_Survive()
     // stats for average fitness
     meanw = 0;
 
-    int father = 0;
-    int mother = 0;
-
-    double rand_dev = 0;
+    double w;
 
     // stats for genetic covariance within offspring
     meancov = 0;
 
-    for (size_t i = 0; i < Npop; ++i)
+    for (size_t i = 0; i < Nf; ++i)
     {
-        rand_dev = gsl_rng_uniform(r) * sum_dist_males;
+        // random mating
+        size_t father = gsl_rng_uniform_int(r, Nm);
 
-        for (size_t j = 0; j < Nm; ++j)
+        // produce kids and let them survive
+        for (size_t j = 0; j < 2 * B; ++j)
         {
-            if (rand_dev <= distMales[j])
+            Individual Kid;
+
+            // create a kid from maternal and paternal genes
+            Create_Kid(i, father, Kid);
+
+            // calculate survival
+            w = v(Kid.phen[0], Kid.phen[1]);
+
+            //cout << i << " " << father << " " << Kid.phen[0] << " " << Kid.phen[1] << " " << w << endl;
+
+
+            assert(w >= 0 && w <= 1.0);
+
+            meanw += w;
+
+            // individual survives; add to stack
+            if (gsl_rng_uniform(r) < w)
             {
-                father = j;
-                break;
+                NewPop[NKids++] = Kid;
+                assert(NKids < Npop * 2 * 10);
             }
         }
 
-        
-        rand_dev = gsl_rng_uniform(r) * sum_dist_females;
+        // remove dad
+        Males[father] = Males[--Nm];
 
-        for (size_t j = 0; j < Nf; ++j)
+        if (Nm == 0)
         {
-            if (rand_dev <= distFemales[j])
-            {
-                mother = j;
-                break;
-            }
+            break;
         }
-
-        Individual Kid;
-
-        // create a kid from maternal and paternal genes
-        Create_Kid(mother, father, Kid);
-
-        NewPop[NKids++] = Kid;
-        assert(NKids < Npop * 2 * 10);
     }
 
+    //cout << meancov / (Npop * 2 * B) << endl;
+
+    meanw /= Nf * 2 * B;
+
+    //cout << NKids << endl;
+    
     if (NKids < Npop)
     {
         cout << "extinct " << NKids << endl;
@@ -563,11 +574,6 @@ void Reproduce_Survive()
     Nm = 0;
     Nf = 0;
 
-    // variables to calculate a cumulative distribution
-    // of all males
-    sum_dist_males = 0;
-    sum_dist_females = 0;
-
     // sample new generation from kids
     for (size_t i = 0; i < Npop; ++i)
     {
@@ -578,24 +584,10 @@ void Reproduce_Survive()
 
         if (gsl_rng_uniform(r) < 0.5)
         {
-            distMales[Nm] = sum_dist_males + v(
-                    NewPop[random_kid].phen[0], 
-                    NewPop[random_kid].phen[1]
-            );
-
-            sum_dist_males = distMales[Nm];
-
             Males[Nm++] = NewPop[random_kid];
         }
         else
         {
-            distFemales[Nf] = sum_dist_females + v(
-                    NewPop[random_kid].phen[0], 
-                    NewPop[random_kid].phen[1]
-            );
-
-            sum_dist_females = distFemales[Nf];
-
             Females[Nf++] = NewPop[random_kid];
         }
 

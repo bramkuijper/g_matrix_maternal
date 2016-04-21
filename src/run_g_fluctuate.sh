@@ -23,3 +23,4 @@
 #    freq1 = atof(argv[14]);
 #    freq2 = atof(argv[15]);
 #    shift = atof(argv[16]);
+#    sd_e = atof(argv[17]);
