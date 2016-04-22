@@ -7,7 +7,7 @@ rmu = [ 0, 0.9, -0.9 ]
 
 romega = [ 0, 0.9, -0.9 ]
 
-omega = [ 1, 3 ]
+omega = [ 0.7 ]
 
 mu = 0.0002
 
@@ -22,11 +22,11 @@ ampl1 = [ 1 ]
 ampl2 = [ 1 ] 
 
 stoch1 = [ 0 ]
-stoch2 = [ 0, 0.01 ]
+stoch2 = [ 0 ]
 
 freq1 = list(np.arange(0, math.pi + math.pi/20, math.pi/20))
 
-shift = [ 0 ]
+shift = [ 0.5 ]
 
 replicates = 5
 
