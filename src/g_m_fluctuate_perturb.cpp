@@ -55,9 +55,6 @@ double mu = 0;
 double mu_m = 0;
 double sdmu_m = 0;
 
-// envt'al stdev
-double sd_e = 0;
-
 // initial number of generations without change 
 int burnin = 5000;
 
@@ -78,6 +75,12 @@ double stoch2 = 0;
 double freq1  = 0;
 double freq2  = 0;
 double shift = 0;
+double int1= 0;
+double int2= 0;
+double int1ptb= 0;
+double int2ptb= 0;
+
+size_t B = 10;
 
 ///////////////////     STATS       ///////////////////
 
@@ -139,7 +142,7 @@ struct Individual
 
 // allocate a population and a population of survivors
 typedef Individual Population[Npop];
-typedef Individual NewPopulation[Npop*2*10];
+typedef Individual NewPopulation[Npop*2*20];
 Population Males, Females;
 NewPopulation NewPop;
 
@@ -239,7 +242,10 @@ void initArguments(int argc, char *argv[])
     freq1 = atof(argv[14]);
     freq2 = atof(argv[15]);
     shift = atof(argv[16]);
-    sd_e = atof(argv[17]);
+    int1 = atof(argv[17]);
+    int2 = atof(argv[18]);
+    int1ptb = atof(argv[19]);
+    int2ptb = atof(argv[20]);
 
     omega[1][0] = omega[0][1] = r_omega * sqrt(omega[0][0] * omega[1][1]);
 
@@ -328,7 +334,6 @@ void WriteParameters()
         << "nloci_g;" << n_loci_g << endl
         << "a1;" << a1 << endl 
         << "a2;" << a2 << endl
-        << "sd_e;" << sd_e << endl
         << "r_mu;" << r_mu << endl
         << "mu;" << mu << endl
         << "mu_m;" << mu_m << endl
@@ -338,8 +343,16 @@ void WriteParameters()
         << "r_omega;" << r_omega << endl
         << "ampl1;" << ampl1 << endl
         << "ampl2;" << ampl2 << endl
+        << "int1;" << int1 << endl
+        << "int2;" << int2 << endl
+        << "int1ptb;" << int1ptb << endl
+        << "int2ptb;" << int2ptb << endl
         << "stoch1;" << stoch1 << endl
         << "stoch2;" << stoch2 << endl
+        << "int1;" << int1 << endl
+        << "int2;" << int2 << endl
+        << "int1ptb;" << int1ptb << endl
+        << "int2ptb;" << int2ptb << endl
         << "shift;" << shift << endl
         << "freq1;" << freq1 << endl
         << "freq2;" << freq2 << endl; 
@@ -475,8 +488,8 @@ void Create_Kid(size_t const mother, size_t const father, Individual &kid)
    
     // add environmental variance to each trait by adding a random number
     // drawn from a normal distribution to each phenotype
-    kid.phen[0] = kid.gen[0] + gsl_ran_gaussian(r,sd_e) + (kid.m[0][0][0] + kid.m[0][0][1]) * Mother.phen[0] + (kid.m[0][1][0] + kid.m[0][1][1]) * Mother.phen[1];
-    kid.phen[1] = kid.gen[1] + gsl_ran_gaussian(r,sd_e) + (kid.m[1][0][0] + kid.m[1][0][1]) * Mother.phen[0] + (kid.m[1][1][0] + kid.m[1][1][1]) * Mother.phen[1];
+    kid.phen[0] = kid.gen[0] + gsl_ran_gaussian(r,1.0) + (kid.m[0][0][0] + kid.m[0][0][1]) * Mother.phen[0] + (kid.m[0][1][0] + kid.m[0][1][1]) * Mother.phen[1];
+    kid.phen[1] = kid.gen[1] + gsl_ran_gaussian(r,1.0) + (kid.m[1][0][0] + kid.m[1][0][1]) * Mother.phen[0] + (kid.m[1][1][0] + kid.m[1][1][1]) * Mother.phen[1];
 }
 
 bool possM(size_t const x, double const val)
@@ -498,48 +511,57 @@ void Reproduce_Survive()
     // stats for average fitness
     meanw = 0;
 
-    int father = 0;
-    int mother = 0;
-
-    double rand_dev = 0;
+    double w;
 
     // stats for genetic covariance within offspring
     meancov = 0;
 
-    for (size_t i = 0; i < Npop; ++i)
+    for (size_t i = 0; i < Nf; ++i)
     {
-        rand_dev = gsl_rng_uniform(r) * sum_dist_males;
+        // random mating
+        size_t father = gsl_rng_uniform_int(r, Nm);
 
-        for (size_t j = 0; j < Nm; ++j)
+        // produce kids and let them survive
+        for (size_t j = 0; j < 2 * B; ++j)
         {
-            if (rand_dev <= distMales[j])
+            Individual Kid;
+
+            // create a kid from maternal and paternal genes
+            Create_Kid(i, father, Kid);
+
+            // calculate survival
+            w = v(Kid.phen[0], Kid.phen[1]);
+
+            //cout << i << " " << father << " " << Kid.phen[0] << " " << Kid.phen[1] << " " << w << endl;
+
+
+            assert(w >= 0 && w <= 1.0);
+
+            meanw += w;
+
+            // individual survives; add to stack
+            if (gsl_rng_uniform(r) < w)
             {
-                father = j;
-                break;
+                NewPop[NKids++] = Kid;
+                assert(NKids < Npop * 2 * 10);
             }
         }
 
-        
-        rand_dev = gsl_rng_uniform(r) * sum_dist_females;
+        // remove dad
+        Males[father] = Males[--Nm];
 
-        for (size_t j = 0; j < Nf; ++j)
+        if (Nm == 0)
         {
-            if (rand_dev <= distFemales[j])
-            {
-                mother = j;
-                break;
-            }
+            break;
         }
-
-        Individual Kid;
-
-        // create a kid from maternal and paternal genes
-        Create_Kid(mother, father, Kid);
-
-        NewPop[NKids++] = Kid;
-        assert(NKids < Npop * 2 * 10);
     }
 
+    //cout << meancov / (Npop * 2 * B) << endl;
+
+    meanw /= Nf * 2 * B;
+
+    //cout << NKids << endl;
+    
     if (NKids < Npop)
     {
         cout << "extinct " << NKids << endl;
@@ -552,11 +574,6 @@ void Reproduce_Survive()
     Nm = 0;
     Nf = 0;
 
-    // variables to calculate a cumulative distribution
-    // of all males
-    sum_dist_males = 0;
-    sum_dist_females = 0;
-
     // sample new generation from kids
     for (size_t i = 0; i < Npop; ++i)
     {
@@ -567,24 +584,10 @@ void Reproduce_Survive()
 
         if (gsl_rng_uniform(r) < 0.5)
         {
-            distMales[Nm] = sum_dist_males + v(
-                    NewPop[random_kid].phen[0], 
-                    NewPop[random_kid].phen[1]
-            );
-
-            sum_dist_males = distMales[Nm];
-
             Males[Nm++] = NewPop[random_kid];
         }
         else
         {
-            distFemales[Nf] = sum_dist_females + v(
-                    NewPop[random_kid].phen[0], 
-                    NewPop[random_kid].phen[1]
-            );
-
-            sum_dist_females = distFemales[Nf];
-
             Females[Nf++] = NewPop[random_kid];
         }
 
@@ -596,8 +599,15 @@ void Reproduce_Survive()
     if (generation > 2000)
     {
         // change the environment
-        theta1 = ampl1 * sin(freq1 * (generation + shift)) + stoch1 * gsl_rng_uniform(r);
-        theta2 = ampl2 * sin(freq2 * generation) + stoch2 * gsl_rng_uniform(r);
+        theta1 = int1 + ampl1 * sin(freq1 * (generation + shift)) + stoch1 * gsl_rng_uniform(r);
+        theta2 = int2 + ampl2 * sin(freq2 * generation) + stoch2 * gsl_rng_uniform(r);
+    }
+
+    // perturb things
+    if (generation == NumGen/2)
+    {
+        int1 = int1ptb;
+        int2 = int2ptb;
     }
 }
 

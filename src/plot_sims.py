@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 import pandas as pd
@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 from matplotlib import rcParams
-rcParams['font.family'] = 'Myriad Pro'
+#rcParams['font.family'] = 'Myriad Pro'
 
 filename = sys.argv[1]
 
@@ -24,15 +24,17 @@ for idx, line in enumerate(fl):
         parline = idx - 1;
         break;
 
-print(parline)
 
-print(filename)
 
 if parline > 0:
-    dat = pd.read_csv(filename, nrows=parline, sep=";")
+    dat = pd.read_csv(filename, nrows=parline-3, sep=";")
 else:
     dat = pd.read_csv(filename, sep=";")
 
+print(dat.describe())
+
+# only take every tenth generation, otherwise too much data....
+dat = dat[dat["generation"] % 10 == 0]
 
 colnames = dat.columns.values
 
