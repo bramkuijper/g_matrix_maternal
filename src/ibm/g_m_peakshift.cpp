@@ -60,6 +60,8 @@ int burnin = 5000;
 // strengths of selection
 double omega[2][2] = {{0,0},{0,0}};
 
+// strength of correlated selection
+double r_omega = 0;
 
 // optima 
 double theta1 = 0;
@@ -164,15 +166,16 @@ void initArguments(int argc, char *argv[])
     mu_m = atof(argv[5]);
     sdmu_m = atof(argv[6]);
     omega[0][0] = atof(argv[7]);
-    omega[0][1] = atof(argv[8]);
-    omega[1][0] = atof(argv[9]);
-    omega[1][1] = atof(argv[10]);
-    B = atof(argv[11]);
-    delta_t1 = atof(argv[12]);
-    delta_t2 = atof(argv[13]);
-    interval = atoi(argv[14]);
-    sigma_theta1 = atof(argv[15]);
-    sigma_theta2 = atof(argv[16]);
+    omega[1][1] = atof(argv[8]);
+    r_omega = atof(argv[9]);
+    B = atof(argv[10]);
+    delta_t1 = atof(argv[11]);
+    delta_t2 = atof(argv[12]);
+    interval = atoi(argv[13]);
+    sigma_theta1 = atof(argv[14]);
+    sigma_theta2 = atof(argv[15]);
+
+    omega[1][0] = omega[0][1] = r_omega * sqrt(omega[0][0] * omega[1][1]);
 
     assert(B < 10);
 }
@@ -254,6 +257,8 @@ void WriteParameters()
         << "a1;" << a1 << endl 
         << "a2;" << a2 << endl
         << "rmu;" << rmu << endl
+        << "seed;" << seed << endl
+        << "r_omega;" << r_omega << endl
         << "mu;" << mu << endl
         << "mu_m;" << mu_m << endl
         << "sdmu_m;" << sdmu_m << endl
@@ -279,19 +284,13 @@ void Init()
     // get the timestamp (with nanosecs)
     // to initialize the seed
 	seed = get_nanoseconds();
-    
-    // set the seed to the random number generator
-    // stupidly enough, for gsl this can only be done by setting
-    // a shell environment parameter
-    stringstream s;
-    s << "GSL_RNG_SEED=" << setprecision(10) << seed;
-    putenv(const_cast<char *>(s.str().c_str()));
 
     // set up the random number generators
     // (from the gnu gsl library)
     gsl_rng_env_setup();
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
+    gsl_rng_set(r, seed);
 
 
 	// initialize the whole population
@@ -452,7 +451,7 @@ void Reproduce_Survive()
 
     //cout << NKids << endl;
     
-    if (NKids < Npop)
+    if (NKids < 100)
     {
         cout << "extinct " << NKids << endl;
         WriteParameters();
@@ -480,10 +479,6 @@ void Reproduce_Survive()
         {
             Females[Nf++] = NewPop[random_kid];
         }
-
-        // delete kid (no resampling possible) by copying kid
-        // from the end of the stack and reducing Nkids by one
-        NewPop[random_kid] = NewPop[--NKids];
     }
 
     // change the environment
