@@ -31,8 +31,6 @@ if parline > 0:
 else:
     dat = pd.read_csv(filename, sep=";")
 
-print(dat.describe())
-
 # only take every tenth generation, otherwise too much data....
 dat = dat[dat["generation"] % 10 == 0]
 
