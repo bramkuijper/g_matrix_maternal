@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, re, sys
+import os, re, sys, argparse
 
 first = True
 
@@ -80,7 +80,6 @@ def visit(arg, dirname, names):
         if re.match("(sim|iter).*",name) != None:
 #            print dirname + "/" + name
             data = analyze_file(dirname + "/" + name)
-
 
 
 os.path.walk(sys.argv[1], visit, None)

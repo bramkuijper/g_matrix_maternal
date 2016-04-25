@@ -14,9 +14,11 @@ mu = 0.0002
 mu_m = [ 0, 0.01 ]
 sdmu_m = 0.02
 
+sigma_e = math.sqrt(0.1)
+
 B = 2
 
-exe = "./xg_m_fluctuate"
+exe = "./xg_m_fluctuate_surv"
  
 ampl1 = [ 1 ]
 ampl2 = [ 1 ] 
@@ -26,7 +28,7 @@ stoch2 = [ 0 ]
 
 freq1 = list(np.arange(0, math.pi + math.pi/20, math.pi/20))
 
-shift = [ 0.5 ]
+shift = [ 0, 0.5 ]
 
 replicates = 5
 
@@ -56,4 +58,5 @@ for replicate_i in range(0,replicates):
                                                     + " " + str(ampl2_i) + " " + str(stoch1_i)
                                                     + " " + str(stoch2_i) + " " + str(freq1_i)
                                                     + " " + str(freq2_i) + " " + str(shift_i)
+                                                    + " " + str(sigma_e)
                                             )
