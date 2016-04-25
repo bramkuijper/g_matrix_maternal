@@ -266,11 +266,11 @@ void WriteParameters()
         << "omega_12;" << omega[0][1] << endl
         << "omega_21;" << omega[1][0] << endl
         << "omega_22;" << omega[1][1] << endl
-        << "delta_t1" << delta_t1 << endl
-        << "delta_t2" << delta_t2 << endl
-        << "interval" << interval << endl
-        << "sigma_theta1" << sigma_theta1 << endl
-        << "sigma_theta2" << sigma_theta2 << endl
+        << "delta_t1;" << delta_t1 << endl
+        << "delta_t2;" << delta_t2 << endl
+        << "interval;" << interval << endl
+        << "sigma_theta1;" << sigma_theta1 << endl
+        << "sigma_theta2;" << sigma_theta2 << endl
         << "B;" << B << endl;
 }
 
